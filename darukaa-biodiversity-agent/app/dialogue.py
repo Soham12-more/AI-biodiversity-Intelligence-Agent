@@ -38,7 +38,8 @@ PERSONAL_RE = re.compile(r"\b(my|our|i have|we have|mine)\b", re.I)
 # otherwise look like site data. Matched independently of PERSONAL_RE so "my field ... right?" or
 # a bare number+claim still gets fact-checked instead of silently parsed as a site variable.
 CLAIM_RE = re.compile(
-    r"(right\?|correct\?|isn'?t it\?|true\?|is (?:that|this|it) true\b|true or false"
+    r"(right\?|correct\?|isn'?t it\?|true\?|accurate\?"
+    r"|is (?:that|this|it) (?:true|accurate|correct)\b|true or false"
     r"|is it true that|can you confirm|does that sound right|sound(?:s)? (?:right|accurate)"
     r"|i (?:read|heard) that)", re.I)
 NUM_RE = re.compile(r"\d+(?:\.\d+)?")
@@ -121,14 +122,14 @@ def _verify_claim(msg: str) -> tuple[str, list[dict]]:
         return ("I don't have evidence on that specific claim in my knowledge base, so I can't "
                 "confirm or deny it — I won't guess."), []
 
-    lines, matched_any, on_topic_cards = [], False, 0
+    lines, on_topic_cards = [], 0
+    top_card = kb.evidence.get(hits[0]["source_id"])
+    matched_any = bool(claimed and top_card and claimed & _pcts(top_card["finding"]))
     for h in hits[:3]:
         c = kb.evidence.get(h["source_id"])
         if not c:
             continue
         on_topic_cards += 1
-        if claimed & _pcts(c["finding"]):
-            matched_any = True
         lines.append(f"- {c['finding'].strip()} [{c['authors']} ({c['year']})]")
 
     if claimed and matched_any:
