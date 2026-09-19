@@ -32,12 +32,33 @@ QUESTIONS = [
 WHY_RE = re.compile(r"^\s*(why|explain|how (?:does|do|will) (?:that|this|it))", re.I)
 RESET_RE = re.compile(r"\b(reset|start over|new site|different site)\b", re.I)
 QUESTION_RE = re.compile(r"^\s*(what|how|does|do|is|are|can|which|why does)\b.*\?\s*$", re.I)
-PERSONAL_RE = re.compile(r"\b(my|our|i have|we have|mine)\b|\d", re.I)
+PERSONAL_RE = re.compile(r"\b(my|our|i have|we have|mine)\b", re.I)
+
+# A claim being run past the agent for a fact-check, even though it contains a number and would
+# otherwise look like site data. Matched independently of PERSONAL_RE so "my field ... right?" or
+# a bare number+claim still gets fact-checked instead of silently parsed as a site variable.
+CLAIM_RE = re.compile(
+    r"(right\?|correct\?|isn'?t it\?|true\?|is (?:that|this|it) true\b|true or false"
+    r"|is it true that|can you confirm|does that sound right|sound(?:s)? (?:right|accurate)"
+    r"|i (?:read|heard) that)", re.I)
+NUM_RE = re.compile(r"\d+(?:\.\d+)?")
+# Only a number immediately followed by % counts as a comparable "figure" for claim-checking.
+# A bare digit (a year count, a study count) is too easy to coincidentally collide with an
+# unrelated number in a cited finding (e.g. '3 years' vs '2-3 year' in a different sentence).
+PCT_RE = re.compile(r"\d+(?:\.\d+)?\s*%")
+
+
+def _pcts(text: str) -> set[str]:
+    return {m.rstrip("% ").strip() for m in PCT_RE.findall(text)}
 
 
 def is_kb_question(msg: str) -> bool:
     """General science question (answer from the KB) vs. a description of the user's own site."""
     return bool(QUESTION_RE.match(msg)) and not PERSONAL_RE.search(msg)
+
+
+def is_claim_check(msg: str) -> bool:
+    return bool(CLAIM_RE.search(msg))
 
 
 def _questions(p: SiteProfile) -> list[str]:
@@ -89,6 +110,36 @@ def _explain(last: list[dict]) -> str:
             f"\nEvidence: {', '.join(c['short'] for c in r['citations'])}.")
 
 
+def _verify_claim(msg: str) -> tuple[str, list[dict]]:
+    """Fact-check a claim like 'cover crops raise SOC by 25% in 3 years, right?' against the
+    evidence cards instead of silently folding its numbers into the site profile or, worse,
+    treating silence as agreement."""
+    kb = load_kb()
+    hits = get_retriever().search(msg, k=4)
+    claimed = _pcts(msg)
+    if not hits:
+        return ("I don't have evidence on that specific claim in my knowledge base, so I can't "
+                "confirm or deny it — I won't guess."), []
+
+    lines, matched_any, on_topic_cards = [], False, 0
+    for h in hits[:3]:
+        c = kb.evidence.get(h["source_id"])
+        if not c:
+            continue
+        on_topic_cards += 1
+        if claimed & _pcts(c["finding"]):
+            matched_any = True
+        lines.append(f"- {c['finding'].strip()} [{c['authors']} ({c['year']})]")
+
+    if claimed and matched_any:
+        verdict = "That figure is consistent with what I have on file:"
+    elif claimed and on_topic_cards:
+        verdict = "That figure doesn't match what I have on file. Here's what the evidence actually says:"
+    else:
+        verdict = "Here's what the evidence actually says on that:"
+    return verdict + "\n" + "\n".join(lines), hits
+
+
 def _kb_answer(q: str) -> tuple[str, list[dict]]:
     kb, hits = load_kb(), get_retriever().search(q, k=3)
     if not hits:
@@ -118,6 +169,11 @@ def handle(req: ChatRequest) -> ChatResponse:
         text = _explain(sess["last_recs"])
         store.log(sid, "assistant", text)
         return ChatResponse(session_id=sid, kind="explanation", text=text, profile=profile)
+
+    if msg and not req.site and is_claim_check(msg):
+        text, hits = _verify_claim(msg)
+        store.log(sid, "assistant", text)
+        return ChatResponse(session_id=sid, kind="answer", text=text, profile=profile, retrieval_trace=hits)
 
     if msg and not req.site and is_kb_question(msg):
         text, hits = _kb_answer(msg)
