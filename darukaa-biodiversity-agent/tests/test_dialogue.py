@@ -34,3 +34,29 @@ def test_grounding_guard_blocks_invented_numbers():
 def test_invalid_values_rejected():
     r = handle(ChatRequest(site={"ph": 19}))
     assert r.kind == "clarification"
+
+
+def test_claim_check_flags_unsupported_percentage():
+    r = handle(ChatRequest(message="Cover crops raise SOC by 25% in 3 years, right?"))
+    assert r.kind == "answer"
+    assert "doesn't match" in r.text
+    assert "25" not in r.text.split("\n")[0]  # verdict line must not echo the false figure back as fact
+
+
+def test_claim_check_confirms_supported_percentage():
+    r = handle(ChatRequest(message="Cover crops raise soil microbial abundance by 27%, is that true?"))
+    assert r.kind == "answer" and "consistent" in r.text and "27%" in r.text
+
+
+def test_claim_check_does_not_swallow_number_as_site_data():
+    """A claim with digits ('3 years', '25%') must not silently become site variables and trigger
+    a full recommendation run instead of answering the question that was actually asked."""
+    r1 = handle(ChatRequest(message="SOC is 0.3%, rainfall is low, monoculture wheat, semi-arid region"))
+    r2 = handle(ChatRequest(session_id=r1.session_id, message="Cover crops raise SOC by 25% in 3 years, right?"))
+    assert r2.kind == "answer"
+    assert r2.profile.soc_pct == 0.3  # existing session data untouched, not overwritten by the claim's numbers
+
+
+def test_bare_factual_question_with_number_not_treated_as_site_data():
+    r = handle(ChatRequest(message="Does intercropping have an LER of 1.30?"))
+    assert r.kind == "answer" and "1.30" in r.text
