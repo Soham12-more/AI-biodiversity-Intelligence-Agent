@@ -1,4 +1,4 @@
-# Darukaa Biodiversity Intelligence Agent
+# AI Biodiversity Intelligence Agent
 
 A conversational "AI environmental scientist" that diagnoses a site from soil, climate, land-use,
 biodiversity and human-impact variables, and returns ranked, evidence-backed interventions.
