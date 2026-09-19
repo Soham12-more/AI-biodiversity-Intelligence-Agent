@@ -1,0 +1,4 @@
+# dense embeddings for hybrid retrieval (auto-detected)
+sentence-transformers>=2.7
+# optional LLM extraction + summary (guarded)
+anthropic>=0.40

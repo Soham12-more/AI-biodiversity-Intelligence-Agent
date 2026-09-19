@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Darukaa Biodiversity Agent</title>
+<style>
+  :root { --bg:#eef2ee; --ink:#1d2b24; --muted:#5b6b62; --line:#c9d3cc; --accent:#2f6f4e; --warn:#8a5a00; --card:#fff; }
+  * { box-sizing:border-box }
+  body { margin:0; font:15px/1.55 "Segoe UI", system-ui, sans-serif; color:var(--ink); background:var(--bg) }
+  main { max-width:880px; margin:0 auto; padding:24px 16px 120px }
+  h1 { font-size:20px; margin:0 0 4px } .sub { color:var(--muted); margin:0 0 20px }
+  .msg { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px 14px; margin:10px 0; white-space:pre-wrap }
+  .me { background:#dde8e1; border-color:#b9ccbf }
+  .rec { border-left:4px solid var(--accent); padding:8px 12px; margin:10px 0; background:#f7faf8 }
+  .rec h3 { margin:0 0 4px; font-size:15px }
+  .meta { color:var(--muted); font-size:13px }
+  .warn { color:var(--warn); font-size:13px }
+  details { font-size:13px; color:var(--muted); margin-top:6px }
+  form { position:fixed; bottom:0; left:0; right:0; background:var(--bg); border-top:1px solid var(--line); padding:12px }
+  .row { max-width:880px; margin:0 auto; display:flex; gap:8px }
+  textarea { flex:1; font:inherit; padding:8px; border:1px solid var(--line); border-radius:6px; min-height:44px }
+  button { font:inherit; padding:0 18px; border:0; border-radius:6px; background:var(--accent); color:#fff; cursor:pointer }
+  button:focus-visible, textarea:focus-visible { outline:3px solid #9cc7ae; outline-offset:1px }
+  label { font-size:13px; color:var(--muted); display:block; max-width:880px; margin:6px auto 0 }
+</style>
+</head>
+<body>
+<main>
+  <h1>Biodiversity Intelligence Agent</h1>
+  <p class="sub">Describe your land in words, or paste JSON (e.g. {"soc_pct":0.3,"rainfall_class":"low","crop_system":"monoculture","climate":"semi-arid","land_use":"cropland"}).</p>
+  <div id="log"></div>
+</main>
+<form id="f">
+  <div class="row">
+    <textarea id="t" placeholder="Biodiversity is declining on my land..." aria-label="Message"></textarea>
+    <button>Send</button>
+  </div>
+  <label><input type="checkbox" id="asjson"> Send as structured JSON</label>
+</form>
+<script>
+let sid = null;
+const log = document.getElementById('log');
+const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function add(html, cls='') { const d=document.createElement('div'); d.className='msg '+cls; d.innerHTML=html; log.appendChild(d); d.scrollIntoView({block:'end'}); }
+document.getElementById('f').onsubmit = async e => {
+  e.preventDefault();
+  const t = document.getElementById('t'), raw = t.value.trim(); if (!raw) return;
+  const body = { session_id: sid };
+  if (document.getElementById('asjson').checked) { try { body.site = JSON.parse(raw); } catch { add('That is not valid JSON.'); return; } }
+  else body.message = raw;
+  add(esc(raw), 'me'); t.value = '';
+  const r = await fetch('/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const j = await r.json(); sid = j.session_id;
+  if (j.kind !== 'recommendations') { add(esc(j.text)); }
+  else {
+    let h = '<b>Diagnosis:</b> ' + j.diagnosis.map(d => esc(d.label)).join('; ');
+    for (const x of j.recommendations) {
+      h += `<div class="rec"><h3>${esc(x.action)}</h3>${esc(x.reasoning_chain.join(' '))}
+        <div><b>Expected effect:</b> ${esc(x.expected_effect)}</div>
+        <div class="meta">Improves: ${esc(x.impacted_metrics.join(', '))} · Horizon: ${x.time_horizon} · Confidence: ${x.confidence} (${esc(x.confidence_reason)})</div>
+        ${x.caveats.length ? `<div class="warn">${esc(x.caveats.join(' '))}</div>` : ''}
+        <div class="meta">Evidence: ${x.citations.map(c => `<a href="https://doi.org/${esc(c.doi)}" target="_blank" rel="noopener">${esc(c.short)}</a>${c.verification==='needs-check'?' (verify figure)':''}`).join('; ')}</div></div>`;
+    }
+    const rej = j.text.split('\n').filter(l => l.startsWith('**Deliberately'));
+    if (rej.length) h += '<div class="warn">' + rej.map(l => esc(l.replace(/\*\*/g,''))).join('<br>') + '</div>';
+    h += `<details><summary>Retrieval trace</summary><pre>${esc(JSON.stringify(j.retrieval_trace, null, 1))}</pre></details>`;
+    add(h);
+  }
+  for (const w of j.warnings || []) add(esc(w), 'warn');
+};
+</script>
+</body>
+</html>

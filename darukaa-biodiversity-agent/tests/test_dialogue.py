@@ -1,0 +1,36 @@
+from app.dialogue import handle
+from app.llm import grounded
+from app.models import ChatRequest
+
+
+def test_asks_clarifying_questions_then_remembers():
+    r1 = handle(ChatRequest(message="Biodiversity is declining on my land"))
+    assert r1.kind == "clarification" and len(r1.questions) == 3
+    r2 = handle(ChatRequest(session_id=r1.session_id, message="SOC 0.3%, rainfall is low"))
+    assert r2.kind == "clarification"  # still only 2 variable families
+    r3 = handle(ChatRequest(session_id=r1.session_id, message="monoculture wheat field"))
+    assert r3.kind == "recommendations"
+    assert r3.profile.soc_pct == 0.3 and r3.profile.rainfall_class == "low"  # memory across turns
+    r4 = handle(ChatRequest(session_id=r1.session_id, message="why?"))
+    assert r4.kind == "explanation" and "Evidence" in r4.text
+
+
+def test_structured_json_input():
+    r = handle(ChatRequest(site={"soc_pct": 0.3, "rainfall_class": "low", "climate": "semi-arid",
+                                 "land_use": "cropland", "crop_system": "monoculture"}))
+    assert r.kind == "recommendations" and r.retrieval_trace
+
+
+def test_general_question_answered_from_kb_not_treated_as_site():
+    r = handle(ChatRequest(message="How does habitat fragmentation affect species?"))
+    assert r.kind == "answer" and "Haddad" in r.text
+
+
+def test_grounding_guard_blocks_invented_numbers():
+    ok, bad = grounded("Cover crops raise SOC by 25% in 3 years (FAO).", {"27", "22", "2.5"})
+    assert not ok and "25" in bad
+
+
+def test_invalid_values_rejected():
+    r = handle(ChatRequest(site={"ph": 19}))
+    assert r.kind == "clarification"

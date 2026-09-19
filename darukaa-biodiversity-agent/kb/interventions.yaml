@@ -1,0 +1,186 @@
+# Diagnostic thresholds. "source" = evidence card id, or "working-threshold" when the cut-off
+# is an engineering choice (configurable) rather than a published value. We never pretend a
+# working threshold is a scientific constant.
+stressors:
+  low_soc:
+    label: Low soil organic carbon
+    rule: {field: soc_pct, op: "<", value: 1.0}
+    severity_from: {field: soc_pct, best: 2.0, worst: 0.2}
+    source: oldfield2019
+  acidic_soil:
+    label: Acidic soil (suppresses soil bacterial diversity)
+    rule: {field: ph, op: "<", value: 5.5}
+    source: fierer2006
+  alkaline_soil:
+    label: Strongly alkaline soil
+    rule: {field: ph, op: ">", value: 8.2}
+    source: working-threshold
+  water_limited:
+    label: Water-limited site
+    any:
+      - {field: rainfall_mm, op: "<", value: 500}
+      - {field: rainfall_class, op: "==", value: low}
+      - {field: climate, op: "in", value: [arid, semi-arid]}
+      - {field: soil_moisture_class, op: "==", value: low}
+    source: working-threshold
+  heat_stress:
+    label: High mean temperature
+    rule: {field: mean_temp_c, op: ">=", value: 28}
+    source: working-threshold
+  monoculture:
+    label: Monoculture / low crop diversity
+    rule: {field: crop_system, op: "==", value: monoculture}
+    source: martinguay2018
+  low_native_habitat:
+    label: Native habitat below 20% of the landscape
+    any:
+      - {field: native_habitat_pct, op: "<", value: 20}
+      - {field: crop_system, op: "==", value: monoculture, only_if_missing: native_habitat_pct}
+    source: garibaldi2021
+  fragmentation:
+    label: Habitat fragmentation / recent clearing
+    any:
+      - {field: fragmentation, op: "in", value: [medium, high]}
+      - {field: deforestation, op: "==", value: true}
+    source: haddad2015
+  pesticide_pressure:
+    label: Pesticide or chemical pollution pressure
+    any:
+      - {field: pesticide_use, op: "in", value: [medium, high]}
+      - {field: pollution, op: "in", value: [medium, high]}
+    source: geiger2010
+  water_body_exposure:
+    label: Runoff reaching a stream / water body
+    rule: {field: near_water_body, op: "==", value: true}
+    source: mayer2007
+
+interventions:
+  - id: legume_intercrop
+    name: Strip or row intercropping of the main crop with a drought-tolerant grain legume
+    land_use: [cropland]
+    addresses: [monoculture, low_native_habitat]
+    improves: [crop_diversity, land_use_efficiency, soil_nitrogen, habitat_heterogeneity]
+    horizon: short
+    mechanism: >
+      Two crops with different rooting depth and timing use light, water and nitrogen more
+      completely, so the same harvest needs less land (LER above 1). The land this frees is what
+      makes a native-habitat set-aside affordable.
+    evidence: [martinguay2018]
+    effect: "Average LER 1.30 across 126 publications; an LER of 1.25 already means about 20% less land for the same harvest."
+
+  - id: habitat_setaside
+    name: Use the land saved by intercropping to reach 20% native habitat (field margins, hedgerows, native grass strips)
+    land_use: [cropland, pasture]
+    addresses: [low_native_habitat, fragmentation, monoculture, pesticide_pressure]
+    improves: [species_richness, habitat_diversity, pollination, natural_pest_control, habitat_connectivity]
+    horizon: medium
+    mechanism: >
+      Species richness in farm landscapes tracks the share of native habitat. Linear strips placed
+      along field edges also act as corridors, which counters the isolation effect that makes small
+      fragments lose species over time.
+    evidence: [garibaldi2021, haddad2015]
+    effect: "Target at least 20% native habitat; fragmentation experiments show 13-75% biodiversity loss when habitat stays isolated."
+
+  - id: agroforestry_alley
+    name: Alley agroforestry - rows of native, drought-tolerant trees or shrubs between crop strips
+    land_use: [cropland, pasture, degraded]
+    contraindicated: [{field: land_use, op: "==", value: forest}]
+    addresses: [low_soc, low_native_habitat, heat_stress, water_limited, fragmentation]
+    improves: [soil_organic_carbon, habitat_diversity, microclimate, species_richness]
+    horizon: long
+    mechanism: >
+      Tree roots and litter add carbon deeper in the profile than crops do; tree rows add vertical
+      structure (nesting, perching, shade) that a wheat field lacks, and lower soil surface
+      temperature and wind-driven evaporation.
+    evidence: [destefano2018, ipcc_srccl2019]
+    effect: "Cropland to agroforestry: SOC stocks +26% (0-15 cm), +40% (0-30 cm), +34% (0-100 cm); pasture to agroforestry only about +9-10% (0-30 cm), in a 53-study meta-analysis."
+    caveat: "Only on cropland or pasture. Converting forest to agroforestry lowered SOC by 26% / 24% in the same meta-analysis."
+
+  - id: residue_mulch_notill
+    name: Keep crop residue on the surface with reduced tillage, inside a rotation
+    land_use: [cropland]
+    addresses: [water_limited, low_soc, heat_stress]
+    improves: [soil_moisture, soil_organic_carbon, soil_fauna_habitat]
+    horizon: short
+    mechanism: >
+      In dry climates the fastest water gain comes from cutting evaporation with surface cover,
+      not from raising SOC. Residue also feeds soil fauna and slowly adds carbon.
+    evidence: [pittelkow2015, minasny2018]
+    effect: "Raising SOC by 1% adds only about 1.16 mm of plant-available water per 100 mm of soil, so surface cover is the main water lever."
+    caveat: "No-till without residue and rotation tends to reduce yield."
+
+  - id: cover_crop
+    name: Winter/fallow cover crop (legume or mixed species)
+    land_use: [cropland]
+    addresses: [low_soc, monoculture]
+    improves: [soil_organic_carbon, microbial_abundance, microbial_activity]
+    horizon: medium
+    mechanism: >
+      Living roots during the fallow feed soil microbes and add carbon; legumes add nitrogen.
+    evidence: [kim2020, jian2020, poeplau2015]
+    effect: "Microbial abundance +27%, activity +22%, diversity only +2.5%; average topsoil SOC gain usually below 16%, at about 0.32 Mg C/ha/yr."
+    water_sensitive: true
+    caveat: "In arid and semi-arid climates the cover crop's water use can cut the next cash crop's yield (joshi2023)."
+    caveat_evidence: [joshi2023]
+
+  - id: ph_correction
+    prerequisite: true   # ranked first: other biological measures under-perform until this is fixed
+    name: Correct soil pH (liming acidic soil) before biological measures
+    land_use: [cropland, pasture, degraded]
+    addresses: [acidic_soil]
+    improves: [soil_ph, microbial_diversity, nutrient_availability]
+    horizon: short
+    mechanism: >
+      Soil pH is the strongest single predictor of soil bacterial diversity, so biological
+      interventions under-perform on very acidic soil until pH is raised.
+    evidence: [fierer2006]
+    effect: "Bacterial diversity is highest near neutral pH and lowest in acidic soils."
+
+  - id: ipm_pesticide_reduction
+    name: Switch to integrated pest management and cut broad-spectrum insecticide/fungicide use
+    land_use: [cropland, pasture]
+    addresses: [pesticide_pressure]
+    improves: [species_richness, natural_pest_control, pollination]
+    horizon: short
+    mechanism: >
+      Broad-spectrum pesticides kill the predators and pollinators that habitat measures try to
+      bring back; without cutting them, set-asides deliver less.
+    evidence: [geiger2010]
+    effect: "Consistent negative effect of pesticide use on plant, beetle and bird diversity and on biological pest control."
+
+  - id: riparian_buffer
+    name: Wide vegetated riparian buffer along streams / drains
+    land_use: [cropland, pasture, degraded]
+    addresses: [water_body_exposure, pesticide_pressure, fragmentation]
+    improves: [water_quality, habitat_connectivity, species_richness]
+    horizon: medium
+    mechanism: >
+      Buffers intercept nitrogen and sediment before they reach water and double as a linear
+      habitat corridor along the watercourse.
+    evidence: [mayer2007, haddad2015]
+    effect: "Wider buffers remove nitrogen more reliably than narrow ones."
+
+  - id: corridor_restoration
+    name: Restore native vegetation corridors between remaining habitat patches
+    land_use: [cropland, pasture, degraded, forest]
+    addresses: [fragmentation, low_native_habitat]
+    improves: [habitat_connectivity, species_richness]
+    horizon: long
+    mechanism: >
+      Species loss in fragments is driven by isolation and edge effects and gets worse over time;
+      connecting patches reduces isolation directly.
+    evidence: [haddad2015, ipbes2019]
+    effect: "Fragmentation reduced biodiversity by 13-75%; effects are largest in the smallest, most isolated patches."
+
+# Causal links used to explain multi-metric reasoning (from -> to). Each link names its evidence.
+causal_links:
+  - [soil_organic_carbon, microbial_activity, kim2020]
+  - [soil_ph, microbial_diversity, fierer2006]
+  - [surface_cover, soil_moisture, pittelkow2015]
+  - [soil_moisture, species_survival, joshi2023]
+  - [crop_diversity, land_use_efficiency, martinguay2018]
+  - [land_use_efficiency, native_habitat, garibaldi2021]
+  - [native_habitat, habitat_connectivity, haddad2015]
+  - [habitat_connectivity, species_richness, haddad2015]
+  - [pesticide_use, species_richness, geiger2010]
+  - [trees_on_farm, soil_organic_carbon, destefano2018]

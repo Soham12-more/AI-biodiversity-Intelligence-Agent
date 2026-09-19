@@ -1,0 +1,234 @@
+# Evidence cards: the ONLY place numbers are allowed to come from.
+# verification:
+#   abstract-checked  -> figure checked against the paper's abstract / publisher page
+#   needs-check       -> well-known source, but re-read the paper before relying on the number
+# Every recommendation the system prints cites card ids from this file.
+
+- id: oldfield2019
+  title: Global meta-analysis of the relationship between soil organic matter and crop yields
+  authors: Oldfield, Bradford & Wood
+  year: 2019
+  venue: SOIL 5:15-32
+  doi: 10.5194/soil-5-15-2019
+  type: meta-analysis
+  verification: abstract-checked
+  metrics: [soil_organic_carbon, yield]
+  finding: >
+    Maize and wheat yields are on average higher at higher SOC, but the gains level off at
+    about 2% SOC. Roughly two-thirds of cultivated maize and wheat land is below 2% SOC.
+  numbers: ["2%"]
+
+- id: jian2020
+  title: A meta-analysis of global cropland soil carbon changes due to cover cropping
+  authors: Jian, Du, Reiter & Stewart
+  year: 2020
+  venue: Soil Biology and Biochemistry 143:107735
+  doi: 10.1016/j.soilbio.2020.107735
+  type: meta-analysis
+  verification: abstract-checked
+  metrics: [soil_organic_carbon]
+  finding: >
+    Cover cropping raises topsoil SOC on average. Across the main meta-analyses
+    (Jian 2020, Poeplau & Don 2015, McClelland 2021) the average topsoil effect is usually
+    below about 16%, and part of the measured gain comes from reduced erosion, not only new carbon input.
+  numbers: ["16%"]
+
+- id: poeplau2015
+  title: Carbon sequestration in agricultural soils via cultivation of cover crops - a meta-analysis
+  authors: Poeplau & Don
+  year: 2015
+  venue: Agriculture, Ecosystems & Environment 200:33-41
+  doi: 10.1016/j.agee.2014.10.024
+  type: meta-analysis
+  verification: needs-check
+  metrics: [soil_organic_carbon]
+  finding: >
+    Cover crops sequestered about 0.32 Mg C per hectare per year in the topsoil (about 0-22 cm),
+    a slow, multi-decade process rather than a 2-3 year jump.
+  numbers: ["0.32"]
+
+- id: kim2020
+  title: Do cover crops benefit soil microbiome? A meta-analysis of current research
+  authors: Kim, Zabaloy, Guan & Villamil
+  year: 2020
+  venue: Soil Biology and Biochemistry 142:107701
+  doi: 10.1016/j.soilbio.2019.107701
+  type: meta-analysis
+  verification: abstract-checked
+  metrics: [microbial_abundance, microbial_activity, microbial_diversity]
+  finding: >
+    Across 60 studies, cover crops raised soil microbial abundance by 27%, activity by 22% and
+    diversity by only 2.5% versus bare fallow. Effects were weaker with chemical termination and conservation tillage.
+  numbers: ["60", "27%", "22%", "2.5%"]
+
+- id: joshi2023
+  title: A global meta-analysis of cover crop response on soil carbon storage within a corn production system
+  authors: Joshi et al.
+  year: 2023
+  venue: Agronomy Journal
+  doi: 10.1002/agj2.21340
+  type: meta-analysis
+  verification: abstract-checked
+  metrics: [soil_moisture, yield]
+  finding: >
+    Cover crop performance depends on climate. In arid and semi-arid climates the water used by
+    the cover crop can reduce the yield of the following cash crop.
+  numbers: []
+
+- id: destefano2018
+  title: Soil carbon sequestration in agroforestry systems - a meta-analysis
+  authors: De Stefano & Jacobson
+  year: 2018
+  venue: Agroforestry Systems 92:285-299
+  doi: 10.1007/s10457-017-0147-9
+  type: meta-analysis
+  verification: abstract-checked
+  metrics: [soil_organic_carbon, habitat_diversity]
+  finding: >
+    From 53 studies, converting agriculture to agroforestry raised SOC stocks by 26%, 40% and 34%
+    at 0-15, 0-30 and 0-100 cm; pasture/grassland to agroforestry raised SOC by about 9-10% at 0-30 cm.
+    Converting forest to agroforestry lowered SOC by 26% and 24% at 0-15 and 0-30 cm.
+  numbers: ["53", "26%", "40%", "34%", "9", "10%", "24%"]
+
+- id: martinguay2018
+  title: "The new Green Revolution: sustainable intensification of agriculture by intercropping"
+  authors: Martin-Guay, Paquette, Dupras & Rivest
+  year: 2018
+  venue: Science of the Total Environment 615:767-772
+  doi: 10.1016/j.scitotenv.2017.10.024
+  type: meta-analysis
+  verification: abstract-checked
+  metrics: [land_use_efficiency, yield]
+  finding: >
+    Intercrops had an average land equivalent ratio (LER) of 1.30 (126 publications); an earlier
+    meta-analysis (Yu et al. 2015) found 1.22. An LER of 1.25 means about 20% less land for the same harvest.
+  numbers: ["1.30", "126", "1.22", "1.25", "20%"]
+
+- id: haddad2015
+  title: Habitat fragmentation and its lasting impact on Earth's ecosystems
+  authors: Haddad et al.
+  year: 2015
+  venue: Science Advances 1:e1500052
+  doi: 10.1126/sciadv.1500052
+  type: synthesis
+  verification: abstract-checked
+  metrics: [species_richness, habitat_connectivity]
+  finding: >
+    Fragmentation experiments on five continents over 35 years show fragmentation reduces
+    biodiversity by 13 to 75%, with the worst effects in the smallest, most isolated patches, and
+    effects grow over time. 70% of remaining forest lies within 1 km of an edge.
+  numbers: ["35", "13", "75%", "70%", "1 km"]
+
+- id: garibaldi2021
+  title: Working landscapes need at least 20% native habitat
+  authors: Garibaldi et al.
+  year: 2021
+  venue: Conservation Letters 14:e12773
+  doi: 10.1111/conl.12773
+  type: policy-review
+  verification: abstract-checked
+  metrics: [habitat_diversity, species_richness, pollination]
+  finding: >
+    Argues for at least 20% native habitat in farmed and ranched landscapes where it is below that
+    level, for food security, nature's contributions to people and connectivity; some landscapes need more than 50%.
+  numbers: ["20%", "50%"]
+
+- id: minasny2018
+  title: Limited effect of organic matter on soil available water capacity
+  authors: Minasny & McBratney
+  year: 2018
+  venue: European Journal of Soil Science 69:39-47
+  doi: 10.1111/ejss.12475
+  type: meta-analysis
+  verification: abstract-checked
+  metrics: [soil_moisture, soil_organic_carbon]
+  finding: >
+    A 1% mass increase in soil organic carbon raises available water capacity by only about
+    1.16 mm per 100 mm of soil on average (larger in sandy soils). Building SOC is a weak way to store more water.
+  numbers: ["1%", "1.16", "100 mm"]
+
+- id: pittelkow2015
+  title: Productivity limits and potentials of the principles of conservation agriculture
+  authors: Pittelkow et al.
+  year: 2015
+  venue: Nature 517:365-368
+  doi: 10.1038/nature13809
+  type: meta-analysis
+  verification: needs-check
+  metrics: [yield, soil_moisture]
+  finding: >
+    No-till alone tends to lower yields, but in dry climates no-till combined with residue
+    retention and crop rotation performs as well as or better than conventional tillage, largely
+    through better water conservation.
+  numbers: []
+
+- id: fierer2006
+  title: The diversity and biogeography of soil bacterial communities
+  authors: Fierer & Jackson
+  year: 2006
+  venue: PNAS 103:626-631
+  doi: 10.1073/pnas.0507535103
+  type: continental survey
+  verification: needs-check
+  metrics: [soil_ph, microbial_diversity]
+  finding: >
+    Soil pH was the strongest predictor of bacterial diversity; diversity was highest in
+    near-neutral soils and lowest in acidic soils.
+  numbers: []
+
+- id: geiger2010
+  title: Persistent negative effects of pesticides on biodiversity and biological control potential on European farmland
+  authors: Geiger et al.
+  year: 2010
+  venue: Basic and Applied Ecology 11:97-105
+  doi: 10.1016/j.baae.2009.12.001
+  type: multi-country field study
+  verification: needs-check
+  metrics: [species_richness, pollution]
+  finding: >
+    Across European farmland, pesticide (especially insecticide and fungicide) use had consistent
+    negative effects on plant, carabid and bird diversity and on natural pest control.
+  numbers: []
+
+- id: mayer2007
+  title: Meta-analysis of nitrogen removal in riparian buffers
+  authors: Mayer, Reynolds, McCutchen & Canfield
+  year: 2007
+  venue: Journal of Environmental Quality 36:1172-1180
+  doi: 10.2134/jeq2006.0462
+  type: meta-analysis
+  verification: needs-check
+  metrics: [water_quality, pollution, habitat_connectivity]
+  finding: >
+    Riparian buffers remove nitrogen from runoff and groundwater; wider buffers remove more
+    reliably than narrow ones, and subsurface removal is more consistent than surface removal.
+  numbers: []
+
+- id: ipbes2019
+  title: Global Assessment Report on Biodiversity and Ecosystem Services
+  authors: IPBES
+  year: 2019
+  venue: IPBES Secretariat, Bonn
+  doi: 10.5281/zenodo.3831673
+  type: global assessment
+  verification: needs-check
+  metrics: [species_richness, land_use]
+  finding: >
+    Land-use change is the largest direct driver of biodiversity loss on land, followed by direct
+    exploitation, climate change, pollution and invasive species.
+  numbers: []
+
+- id: ipcc_srccl2019
+  title: Climate Change and Land (Special Report)
+  authors: IPCC
+  year: 2019
+  venue: IPCC
+  doi: 10.1017/9781009157988
+  type: global assessment
+  verification: needs-check
+  metrics: [soil_organic_carbon, land_use, temperature]
+  finding: >
+    Land management options such as agroforestry, improved cropland management and
+    reducing deforestation can deliver co-benefits for climate adaptation, mitigation, food
+    security and biodiversity; drylands are especially exposed to degradation under warming.
+  numbers: []

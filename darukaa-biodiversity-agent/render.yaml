@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: darukaa-biodiversity-agent
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false        # set in Render dashboard, never commit
