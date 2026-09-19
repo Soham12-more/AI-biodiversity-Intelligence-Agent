@@ -60,3 +60,15 @@ def test_claim_check_does_not_swallow_number_as_site_data():
 def test_bare_factual_question_with_number_not_treated_as_site_data():
     r = handle(ChatRequest(message="Does intercropping have an LER of 1.30?"))
     assert r.kind == "answer" and "1.30" in r.text
+
+
+def test_claim_check_ignores_unrelated_percentage_from_a_different_card():
+    """A claimed % must only be checked against the topically relevant (top-ranked) card, not any
+    card in the top-k that happens to share a digit on an unrelated topic (here: LER vs habitat %)."""
+    r = handle(ChatRequest(message="Intercropping gives a 50% land equivalent ratio boost, correct?"))
+    assert r.kind == "answer" and "doesn't match" in r.text
+
+
+def test_claim_check_recognizes_is_that_accurate_phrasing():
+    r = handle(ChatRequest(message="Fragmentation reduces biodiversity by up to 75%, is that accurate?"))
+    assert r.kind == "answer" and "consistent" in r.text
